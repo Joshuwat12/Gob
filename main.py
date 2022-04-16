@@ -1,5 +1,10 @@
 import pygame
 from pygame.locals import *
-.0
+
+#create the display
 DISPLAYSURF = pygame.display.set_mode((300,300))
+pygame.draw.circle(DISPLAYSURF, BLACK, (200,50), 30)
+
+#create colors
+colorpreset = (0, 0, 0)
 
