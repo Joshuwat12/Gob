@@ -81,13 +81,13 @@ class Player(Animation):
         self.is_idle = True
 
         pressed_keys = pygame.key.get_pressed()
-        if (self.rect.left > 0 and pressed_keys[K_a]): #TODO: Add wall collision if applicable.
+        if (self.collision.left > 0 and pressed_keys[K_a]): #TODO: Add wall collision if applicable.
             self.move(-self.move_speed * self.size, 0)
             if (not self.is_attacking):
                 super().ChangeAnim("walk", rectX=20, rectY=15)
             self.is_idle = False
             self.facing_left = True
-        if (self.rect.right < SCREEN_WIDTH and pressed_keys[K_d]): #TODO: Add wall collision if applicable.
+        if (self.collision.right < SCREEN_WIDTH and pressed_keys[K_d]): #TODO: Add wall collision if applicable.
             self.move(self.move_speed * self.size, 0)
             if (not self.is_attacking):
                 super().ChangeAnim("walk", rectX=20, rectY=15)
