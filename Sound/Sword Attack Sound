@@ -1,0 +1,4 @@
+import pygame
+pygame.init()
+sword = pygame.mixer.Sound('AFX_SWORDSHING_4_DFMG.mp3')
+sword.play()
