@@ -16,6 +16,14 @@ DISPLAYSURF = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 DISPLAYSURF.fill(WHITE)
 pygame.display.set_caption("Gob")
 
+#sounds defined
+sounds = {}
+for s in os.listdir("Assets/Sounds"):
+    sounds[s] = pygame.mixer.Sound("Assets/Sounds/" + s)
+
+pygame.mixer.music.load("Assets/Sounds/background.mp3")
+pygame.mixer.music.play(-1)
+
 animations = {}
 spriteDir = "Assets/Sprites"
 for c in os.listdir(spriteDir):
@@ -156,6 +164,7 @@ class Player(Animation):
             self.velocity = 0
 
     def attack(self):
+        #sounds[f"shout{random.randrange(4)}.mp3"].play()
         if (random.random() <= 1/3):
             super().ChangeAnim("attack1", rectX=40, rectY=-1)
         elif (random.random() <= 0.5):
@@ -272,6 +281,7 @@ class Enemy(Animation):
             self.attack_timer += random.random() + 3
 
     def hurt(self, damage, turn_around=False):
+        sounds[random.choice(["attack0.mp3", "attack1.wav"])].play()
         damage /= self.size
         self.knockback = 20 * (1 - max(self.health - damage, 0) / self.health)
         self.health -= damage
@@ -320,12 +330,13 @@ while True:
     if ENEMY_TIMER <= 0:
         ENEMY_TIMER += 1.5 - GOB.size * 0.75 / 8
         if (len(ENEMIES.sprites()) < MAX_ENEMIES):
-            ENEMIES.add(Enemy("slime_" + random.choice(["red","orange","yellow","green","blue","purple"]), GOB, RandomEnemySize(GOB.size), defaultAnim="jump", animSpeed=4))    
+            ENEMIES.add(Enemy("slime_" + random.choice(["red","orange","yellow","green","blue","purple"]), GOB, RandomEnemySize(GOB.size), defaultAnim="jump", animSpeed=4))
     
     GOB.update(deltaTime)
     [e.update(deltaTime) for e in ENEMIES.sprites()]
 	
     DISPLAYSURF.fill(WHITE)
+    DISPLAYSURF.blit(animations["backgrounds"]["castle"][0], (0,0))
     GOB.draw(DISPLAYSURF)
     [e.draw(DISPLAYSURF) for e in ENEMIES.sprites()]
 
@@ -343,6 +354,11 @@ while True:
         ENEMIES.empty()
         gui_win = GUI_FONT.render("YOU WON!", True, BLACK)
         DISPLAYSURF.blit(gui_win, (SCREEN_WIDTH / 2 - 64, SCREEN_HEIGHT / 2))
+    elif (GOB.size <= 1):
+        gui_instruction0 = GUI_FONT.render("A and D to move, W to jump, SPACE to attack", True, BLACK)
+        gui_instruction1 = GUI_FONT.render("Thanks for the background image, upklyak.", True, BLACK)
+        DISPLAYSURF.blit(gui_instruction0, (0, SCREEN_HEIGHT / 2))
+        DISPLAYSURF.blit(gui_instruction1, (0, SCREEN_HEIGHT / 2 + 32))
          
     pygame.display.update()
     framerate.tick(FPS)
