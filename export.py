@@ -5,7 +5,7 @@ executables = [cx_Freeze.Executable("main.py")]
 cx_Freeze.setup(
     name="Gob",
     options={"build_exe": {"packages":["pygame"],
-                           "include_files":["Assets"]}},
+                           "include_files":["Assets", "sword_attack.py"]}},
     executables = executables
 
     )
