@@ -26,14 +26,15 @@ for c in os.listdir(spriteDir):
 ENEMIES = pygame.sprite.Group()
 ENEMY_TIMER = 0
 MAX_ENEMIES = 1
-HEALTH_BACK = pygame.rect.Rect((32,32), (200,32))
-HEALTH_FRONT = pygame.rect.Rect((32,32), (200,32))
+GUI_FONT = pygame.font.SysFont("Comic.ttf", 32)
+HEALTH_BACK = pygame.rect.Rect((32,96), (200,32))
+HEALTH_FRONT = pygame.rect.Rect((32,96), (200,32))
 
 
 
 def RandomEnemySize(maxSize=1):
     while (random.random() <= 1/5):
-        maxSize += 1
+        maxSize *= 1.5
     return min(random.random(), random.random()) * (maxSize - 1) + 1 #Rolls two random values from 1 through (maxSize + 1) and returns the lowest of the two
 
 
@@ -75,7 +76,7 @@ class Player(Animation):
         self.size = 1
         self.max_health = 100
         self.health = self.max_health
-        self.damage = 20
+        self.damage = 15
         self.attack_cooldown = 0.25
         self.move_speed = 12.5
         self.jump_force = 20
@@ -118,7 +119,7 @@ class Player(Animation):
             self.move(0, -self.velocity)
             if (self.can_fight() and not self.is_attacking):
                 super().ChangeAnim("jump", 0, 15, 0)
-                self.curFrame = min((1 - self.velocity / self.jump_force / self.size), 1) * 30 - 1 #This formula sets the animation frame proportional to the player's velocity.
+                self.curFrame = min((1 - self.velocity / self.jump_force / self.size_cuberoot()), 1) * 30 - 1 #This formula sets the animation frame proportional to the player's velocity.
             self.velocity -= self.gravity * self.size_cuberoot()
             self.is_idle = False
             if (self.collision.bottom >= SCREEN_HEIGHT):
@@ -212,7 +213,7 @@ class Enemy(Animation):
         self.collision.midbottom = (SCREEN_WIDTH / 2, SCREEN_HEIGHT) if dummy else (random.random() * SCREEN_WIDTH, 0)
 
         self.health = 100
-        self.damage = 20 * size
+        self.damage = 30 * size
         self.dummy = dummy
 
         self.facing_left = dummy or random.choice([True, False]) #If the enemy is the starting dummy, then it will face left. Otherwise, its initial orientation is random.
@@ -271,14 +272,15 @@ class Enemy(Animation):
             self.attack_timer += random.random() + 3
 
     def hurt(self, damage, turn_around=False):
-        self.health -= damage / self.size
+        damage /= self.size
+        self.knockback = 20 * (1 - max(self.health - damage, 0) / self.health)
+        self.health -= damage
         if (self.health <= 0):
             self.kill()
             self.target.grow(self.size / 10)
         if turn_around:
             self.facing_left = not self.facing_left
         self.jump_stop()
-        self.knockback = 10
 
     def orient(self):
         self.facing_left = (self.collision.centerx >= self.target.collision.centerx)
@@ -316,7 +318,7 @@ while True:
     deltaTime = 1/framerate.get_time() if framerate.get_time() > 0 else 1/FPS #framerate.get_time() returns the real framerate in FPS in between the previous two frames. The default value is 0 for the first two frames.
     ENEMY_TIMER -= deltaTime
     if ENEMY_TIMER <= 0:
-        ENEMY_TIMER += 1.5
+        ENEMY_TIMER += 1.5 - GOB.size * 0.75 / 8
         if (len(ENEMIES.sprites()) < MAX_ENEMIES):
             ENEMIES.add(Enemy("slime_" + random.choice(["red","orange","yellow","green","blue","purple"]), GOB, RandomEnemySize(GOB.size), defaultAnim="jump", animSpeed=4))    
     
@@ -327,9 +329,20 @@ while True:
     GOB.draw(DISPLAYSURF)
     [e.draw(DISPLAYSURF) for e in ENEMIES.sprites()]
 
+    gui_size = GUI_FONT.render(f"Size: {math.floor(GOB.size_cuberoot() * 30) / 10}'", True, BLACK)
+    gui_health = GUI_FONT.render("HEALTH", True, BLACK)
+    DISPLAYSURF.blit(gui_size, (32,32))
+    DISPLAYSURF.blit(gui_health, (32,64))
     HEALTH_FRONT.width = 200 * GOB.health / GOB.max_health
     pygame.draw.rect(DISPLAYSURF, BLACK, HEALTH_BACK)
     pygame.draw.rect(DISPLAYSURF, RED, HEALTH_FRONT)
+    if (GOB.health <= 0):
+        gui_gameover = GUI_FONT.render("GAME OVER", True, BLACK)
+        DISPLAYSURF.blit(gui_gameover, (SCREEN_WIDTH / 2 - 64, SCREEN_HEIGHT / 2))
+    elif (GOB.size >= 8):
+        ENEMIES.empty()
+        gui_win = GUI_FONT.render("YOU WON!", True, BLACK)
+        DISPLAYSURF.blit(gui_win, (SCREEN_WIDTH / 2 - 64, SCREEN_HEIGHT / 2))
          
     pygame.display.update()
     framerate.tick(FPS)
