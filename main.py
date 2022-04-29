@@ -38,10 +38,7 @@ GUI_FONT = pygame.font.SysFont("Comic.ttf", 32)
 HEALTH_BACK = pygame.rect.Rect((32,96), (200,32))
 HEALTH_FRONT = pygame.rect.Rect((32,96), (200,32))
 
-#sounds defined
-sounds = {}
-for s in os.listdir("Assets/Sounds"):
-  sounds[s] = pygame.mixer.Sound("Assets/Sounds/"+s)
+
 
 def RandomEnemySize(maxSize=1):
     while (random.random() <= 1/5):
@@ -181,7 +178,6 @@ class Player(Animation):
         for e in ENEMIES:
             if e.collision.colliderect(self.blade):
                 e.hurt(self.damage * self.size, self.facing_left == e.facing_left)
-                sounds["attack2.wav"].play()
 
     def hurt(self, damage, turn_around=False):
         damage /= self.size
